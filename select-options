@@ -1,0 +1,55 @@
+report z_portex_select_optons.
+
+
+tables : zuser_cad, zuser_adress.
+
+types : begin of ty_user,
+          id        type z_id,
+          custname  type s_custname,
+          street    type s_street,
+          cellphone type z_cellphone,
+          cpf       type z_cpf,
+          city      type city,
+          region    type s_region,
+          country   type s_country,
+        end of ty_user.
+
+data : it_user type table of ty_user,
+       wa_user type ty_user.
+
+select-options :  s_id for zuser_cad-id,
+                  s_cname for zuser_cad-custname,
+                  s_city for zuser_adress-city,
+                  s_region for zuser_adress-region,
+                  s_cntry for zuser_adress-country.
+
+parameters : p_city as checkbox.
+
+if p_city is not initial.
+  s_city-sign = 'I'.
+  s_city-option = 'EQ'.
+  s_city-low = 'Ribeirão Preto'.
+
+  append s_city.
+endif.
+
+
+select zuser_cad~id zuser_cad~custname zuser_cad~cpf zuser_cad~cellphone zuser_adress~street zuser_adress~city zuser_adress~region
+  zuser_adress~country from zuser_cad as zuser_cad inner join zuser_adress
+  as zuser_adress on zuser_cad~id = zuser_adress~address
+  into table it_user
+  where zuser_adress~city in s_city
+  and zuser_adress~country in s_cntry
+  and zuser_cad~custname in s_cname
+  and zuser_cad~id in s_id.
+
+loop at it_user into wa_user.
+
+  format color 3.
+  write :/'----------------------------------------------------------------------------------------------------------------------------------------'.
+  write  :/ '|','ID', 25'Nome', '              Endereço', '        Celular','          CPF', '                          Cidade', '             Região','|'.
+  write :/'----------------------------------------------------------------------------------------------------------------------------------------'.
+  format color off.
+  write: /'', wa_user-id left-justified, wa_user-custname , wa_user-cpf ,  wa_user-cellphone , wa_user-street , wa_user-city, wa_user-region, wa_user-country.
+
+endloop.
